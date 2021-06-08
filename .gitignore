@@ -1,0 +1,11 @@
+bin/
+build/
+env.sh
+.vscode
+__*
+
+optimization_server/log/**
+api_server/log/**
+.env
+*.env
+ui/app/node_modules

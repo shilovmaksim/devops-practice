@@ -1,0 +1,12 @@
+.vscode
+.git
+dockerfiles/
+*.md
+!README.md
+.golangci.yml
+docker-compose.yml
+
+optimization_server/log/**
+bucket/**
+assets/**
+ui/app/node_modules

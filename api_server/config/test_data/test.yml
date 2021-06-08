@@ -1,0 +1,13 @@
+application:
+  port: "8085"
+  logPath: "log/server.log"
+  logLevel: "debug"
+script:
+  dir: "python_script"
+  prefix: "tmp"
+  path: "python_script/main.py"
+  timeout: 5000ms
+storage:
+  type: "local"
+  region: "us-east-3"
+  bucket: "vasiliy-internal-test-bucket"

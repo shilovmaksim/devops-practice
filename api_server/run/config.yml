@@ -1,0 +1,11 @@
+application:
+  port: "8080"
+  logPath: "log/server.log"
+  logLevel: "debug"
+storage:
+  type: "s3"
+  region: "us-east-2"
+  bucket: "vasiliy-internal-test-bucket"
+opt_srv:
+  endpoint: "127.0.0.1"
+  port: "8090"
