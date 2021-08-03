@@ -6,6 +6,7 @@ import (
 
 	"github.com/cxrdevelop/optimization_engine/api_server/config"
 	"github.com/cxrdevelop/optimization_engine/api_server/server"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func main() {
@@ -16,6 +17,7 @@ func main() {
 	if cfg, err := config.ReadConfig(configPath); err != nil {
 		log.Panicf("error reading config: %s", err)
 	} else {
+		prometheus.MustRegister(prometheus.NewBuildInfoCollector())
 		server.New(cfg).Start()
 	}
 }

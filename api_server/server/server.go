@@ -12,6 +12,7 @@ import (
 	"github.com/cxrdevelop/optimization_engine/api_server/config"
 	"github.com/cxrdevelop/optimization_engine/api_server/internal/optimization"
 	"github.com/cxrdevelop/optimization_engine/pkg/logger"
+	"github.com/cxrdevelop/optimization_engine/pkg/metrics"
 	"github.com/cxrdevelop/optimization_engine/pkg/storage"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -96,6 +97,9 @@ func (s *Server) SetDefaults() {
 
 func (s *Server) SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
+
+	r.Use(metrics.PrometheusMiddleware)
+	r.Handle("/metrics", metrics.Handler())
 
 	apiPrefix := r.PathPrefix("/api/v1").Subrouter()
 

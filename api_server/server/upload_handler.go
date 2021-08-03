@@ -16,6 +16,8 @@ import (
 	"github.com/cxrdevelop/optimization_engine/pkg/environment"
 	"github.com/cxrdevelop/optimization_engine/pkg/logger"
 	"github.com/cxrdevelop/optimization_engine/pkg/storage"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 const (
@@ -33,6 +35,29 @@ const (
 	maxMemory = 10 << 20 // 10 MB buffer
 )
 
+var (
+	uiUploadDuration = promauto.NewHistogram(prometheus.HistogramOpts{
+		Name:    "ui_upload_duration_time_seconds",
+		Help:    "Duration of files uploading",
+		Buckets: prometheus.DefBuckets,
+	})
+	compresionDuration = promauto.NewHistogram(prometheus.HistogramOpts{
+		Name:    "compression_time_seconds",
+		Help:    "Duration of files compressing",
+		Buckets: prometheus.DefBuckets,
+	})
+	storageUploadDuration = promauto.NewHistogram(prometheus.HistogramOpts{
+		Name:    "storage_upload_duration_time_seconds",
+		Help:    "Duration of files uploading files to the storage",
+		Buckets: prometheus.DefBuckets,
+	})
+	optimizationRequestDuration = promauto.NewHistogram(prometheus.HistogramOpts{
+		Name:    "optimization_request_duration_time_seconds",
+		Help:    "Duration of optimization request",
+		Buckets: prometheus.DefBuckets,
+	})
+)
+
 type UploadHandler struct {
 	storage storage.Storage
 	client  *optimization.Client
@@ -47,11 +72,23 @@ func NewUploadHandler(storage storage.Storage, client *optimization.Client, log 
 	}
 }
 
+// Upload files
+// @Summary Upload files and start optimization process
+// @Description Upload files for optimization script and request an optimization run
+// @ID upload-handler
+// @Accept  multipart/form-data
+// @Produce  json
+// @Param   file formData file true  "filename"
+// @Success 200 {object} models.UploadResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Router /v1/upload [post]
 func (h *UploadHandler) ServeHTTP(writer http.ResponseWriter, r *http.Request) {
+
 	// Create a temporary directory
 	env := environment.New(os.TempDir(), envPrefix)
 	if err := env.CreateTempDir(); err != nil {
-		h.log.Errorf("error creating tempdir")
+		h.log.Errorf("error creating tempdir: %s", err)
 		writeResponse(writer, models.NewErrorResponse(err.Error()), http.StatusInternalServerError, h.log)
 	}
 	defer func() {
@@ -62,7 +99,9 @@ func (h *UploadHandler) ServeHTTP(writer http.ResponseWriter, r *http.Request) {
 
 	// Upload files from the UI
 	h.log.Debugf("Start uploading files")
+	timer := prometheus.NewTimer(uiUploadDuration)
 	filenames, err := h.serveFileUpload(env.Dir(), r)
+	timer.ObserveDuration()
 	if err != nil {
 		writeResponse(writer, models.NewErrorResponse(ErrMsgInternal), http.StatusBadRequest, h.log)
 		return
@@ -70,15 +109,19 @@ func (h *UploadHandler) ServeHTTP(writer http.ResponseWriter, r *http.Request) {
 
 	// Create zip archive from user provided files
 	h.log.Debugf("Add files to zip archive: '%s'", filenames)
+	timer = prometheus.NewTimer(compresionDuration)
 	absPathToArch := path.Join(env.Dir(), (environment.Filename)(inputFileName).WithUnixSuffix())
 	archFilesPath, err := compressor.Compress(context.Background(), absPathToArch, env.Dir(), filenames...)
+	timer.ObserveDuration()
 	if err != nil {
 		writeResponse(writer, models.NewErrorResponse(ErrMsgInternal), http.StatusBadRequest, h.log)
 		return
 	}
 
 	// Upload files to the bucket
+	timer = prometheus.NewTimer(storageUploadDuration)
 	filename := filepath.Base(archFilesPath)
+	timer.ObserveDuration()
 	if _, err := h.storage.UploadFiles(env.Dir(), filename); err != nil {
 		writeResponse(writer, models.NewErrorResponse("error uploading archive to the bucket"), http.StatusBadRequest, h.log)
 		return
@@ -86,7 +129,9 @@ func (h *UploadHandler) ServeHTTP(writer http.ResponseWriter, r *http.Request) {
 
 	// POST a request to the optimization service
 	h.log.Debugf("Post a request to the optimization service, filename: %s", filename)
+	timer = prometheus.NewTimer(optimizationRequestDuration)
 	resp, err := h.client.PostOptimize(filename)
+	timer.ObserveDuration()
 	if err != nil {
 		writeResponse(writer, models.NewErrorResponse("script execution error"), http.StatusBadRequest, h.log)
 		return

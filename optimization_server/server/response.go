@@ -11,10 +11,11 @@ func writeResponse(writer http.ResponseWriter, data interface{}, statusCode int,
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		log.Errorf("failed to marshal response (%s)", err)
-		jsonBytes = []byte(`{}`)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	writer.WriteHeader(statusCode)
 	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(statusCode)
 	writer.Write(jsonBytes)
 }
