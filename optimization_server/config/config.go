@@ -18,10 +18,11 @@ type Config struct {
 		LogLevel string `yaml:"logLevel" env:"LOG_LEVEL" env-default:"debug"`
 	} `yaml:"application"`
 	Script struct {
-		Dir     string        `yaml:"dir" env:"SCRIPT_DIR" env-default:"script"`
-		Prefix  string        `yaml:"prefix" env:"SCRIPT_PREFIX" env-default:"tmp"`
-		Path    string        `yaml:"path" env:"SCRIPT_PATH" env-default:"main.py"`
-		Timeout time.Duration `yaml:"timeout" env:"SCRIPT_TIMEOUT" env-default:"5000ms"`
+		Dir         string        `yaml:"dir" env:"SCRIPT_DIR" env-default:"script"`
+		Prefix      string        `yaml:"prefix" env:"SCRIPT_PREFIX" env-default:"tmp"`
+		Path        string        `yaml:"path" env:"SCRIPT_PATH" env-default:"main.py"`
+		Timeout     time.Duration `yaml:"timeout" env:"SCRIPT_TIMEOUT" env-default:"5000ms"`
+		Concurrency int           `yaml:"concurrency" env:"SCRIPT_CONCURRENCY" env-default:"8"`
 	} `yaml:"script"`
 	Storage struct {
 		Type   string `yaml:"type" env:"STORAGE_TYPE" env-default:"local"`

@@ -14,6 +14,7 @@ import (
 	"github.com/cxrdevelop/optimization_engine/optimization_server/internal/optimizer"
 	"github.com/cxrdevelop/optimization_engine/optimization_server/internal/python"
 	"github.com/cxrdevelop/optimization_engine/pkg/logger"
+	"github.com/cxrdevelop/optimization_engine/pkg/metrics"
 	"github.com/cxrdevelop/optimization_engine/pkg/storage"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -54,7 +55,7 @@ func (s *Server) Start() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			s.logger.Fatalf("error occurred while running http server: %s\n", err)
+			s.logger.Fatalf("error occurred while running http server: %s", err)
 		}
 	}()
 
@@ -68,7 +69,7 @@ func (s *Server) Start() {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		s.logger.Errorf("optimization server server shutdown failed: %s", err)
+		s.logger.Errorf("http server shutdown failed: %s", err)
 	}
 
 	s.logger.Warn("optimization server shutting down")
@@ -113,6 +114,10 @@ func (s *Server) SetDefaults() {
 
 func (s *Server) SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
+
+	r.Use(metrics.PrometheusMiddleware)
+	r.Handle("/metrics", metrics.Handler())
+
 	apiPrefix := r.PathPrefix("/api/v1").Subrouter()
 
 	wrappedHealthHandler := handlers.LoggingHandler(s.logger.Writer(),
@@ -123,7 +128,7 @@ func (s *Server) SetupRoutes() *mux.Router {
 	wrappedOptimizationHandler := handlers.LoggingHandler(s.logger.Writer(),
 		NewOptimizationHandler(s.optimizer, s.logger),
 	)
-	apiPrefix.Handle("/optimize", wrappedOptimizationHandler).Methods("GET")
+	apiPrefix.Handle("/optimize", wrappedOptimizationHandler).Methods("GET", "POST")
 
 	return r
 }

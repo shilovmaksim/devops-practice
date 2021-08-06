@@ -10,8 +10,6 @@ import (
 	"github.com/cxrdevelop/optimization_engine/pkg/logger"
 )
 
-// TODO: maybe store error messages as const?
-
 const (
 	ErrMsgEmptyRequest = "empty request body"
 	ErrMsgJsonParse    = "error parsing json body"
@@ -34,6 +32,17 @@ func NewOptimizationHandler(optimizer optimizer.Optimizer, log *logger.Logger) *
 	}
 }
 
+// Optimize
+// @Summary Run optimization script
+// @Description Download files from the bucket and run optimization script
+// @ID optimization-handler
+// @Accept  json
+// @Produce  json
+// @Param message body models.OptimizationRequest true "Path to file in the bucket"
+// @Success 200 {object} models.OptimizationResponse "Successful run result"
+// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Router /v1/optimize [post]
 func (h *OptimizationHandler) ServeHTTP(writer http.ResponseWriter, r *http.Request) {
 	req := models.OptimizationRequest{}
 	if r.Body == nil {

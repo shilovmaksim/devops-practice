@@ -1,6 +1,8 @@
 package models
 
-import "net/url"
+import (
+	"net/url"
+)
 
 type (
 	// HealthResponse - a model for health check api

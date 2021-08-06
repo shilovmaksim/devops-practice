@@ -22,5 +22,7 @@ Optimize run:
   curl -X GET -H "Content-Type: application/json" -d '{"args":["file1.csv","file2.csv"]}' localhost:8080/api/v1/optimize
 ```
 
+## Python script
+The script resides in the 'python_script' folder, test files can be found in the 'script_files' folder.
 ## Logging
 Incoming requests are logged in the Apache [Common Log Format](http://httpd.apache.org/docs/2.2/logs.html#common) and can be grepped in `{server_name}/log` folder.

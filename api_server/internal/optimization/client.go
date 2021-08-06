@@ -62,7 +62,7 @@ func (c *Client) PostOptimize(filename string) (*Response, error) {
 		return nil, fmt.Errorf("optimization server error, '%s", response.Body)
 	}
 
-	optimizationResponse := models.NewOptimizationResponse()
+	optimizationResponse := models.OptimizationResponse{}
 	if err := json.NewDecoder(response.Body).Decode(&optimizationResponse); err != nil {
 		return nil, err
 	}

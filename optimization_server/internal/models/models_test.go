@@ -3,6 +3,7 @@ package models
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -50,4 +51,14 @@ func TestValidation_OptimizationRequest(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOptimizationResponse(t *testing.T) {
+	resp := NewOptimizationResponse("location", "filename", "etag", int64(1*time.Millisecond))
+	assert.IsType(t, OptimizationResponse{}, resp)
+	assert.Equal(t, resp.BucketFilename, "filename")
+	assert.Equal(t, resp.BucketLocation, "location")
+	assert.Equal(t, resp.BucketETag, "etag")
+	assert.Equal(t, resp.ExecutionTime, int64(1*time.Millisecond))
+
 }
