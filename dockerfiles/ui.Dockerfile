@@ -1,7 +1,9 @@
 FROM node:16-alpine3.14
 WORKDIR /app
-COPY ./ui/app/ .
+COPY ./ui/app/package-lock.json .
+COPY ./ui/app/package.json .
 RUN npm ci
+COPY ./ui/app .
 RUN npm run build
 
 FROM nginx:1.21.1-alpine
