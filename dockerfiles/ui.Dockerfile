@@ -1,7 +1,7 @@
 FROM node:16-alpine3.14
 WORKDIR /app
 COPY ./ui/app/ .
-RUN npm install
+RUN npm ci
 RUN npm run build
 
 FROM nginx:1.21.1-alpine
