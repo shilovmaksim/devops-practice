@@ -1,0 +1,40 @@
+version: '3'
+services:
+  api_server:
+    container_name: api_server
+    environment:
+      - STORAGE_TYPE=local
+      - STORAGE_BUCKET=/bucket
+    build:
+      dockerfile: ./dockerfiles/api.Dockerfile
+      context: .
+    healthcheck:
+      test: wget --no-verbose --spider http://api_server:8080/api/v1/health  || exit 1
+    volumes:
+      - bucket:/bucket
+
+  optimization_server:
+    container_name: optimization_server
+    environment:
+      - STORAGE_TYPE=local
+      - STORAGE_BUCKET=/bucket
+    build:
+      dockerfile: ./dockerfiles/optimization.Dockerfile
+      context: .
+    healthcheck:
+      test: wget --no-verbose --spider http://optimization_server:8090/api/v1/health  || exit 1
+    volumes:
+      - bucket:/bucket
+
+  ui:
+    container_name: ui
+    build:
+      dockerfile: ./dockerfiles/ui.Dockerfile
+      context: .
+    healthcheck:
+      test: wget --no-verbose --spider http://ui/nginx-health  || exit 1
+    ports:
+      - "4000:80"
+
+volumes:
+  bucket:
