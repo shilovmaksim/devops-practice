@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: optimization-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: optimization-server
+  template:
+    metadata:
+      labels:
+        component: optimization-server
+    spec:
+      volumes:
+        - name: bucket
+          persistentVolumeClaim:
+            claimName: bucket-pvc
+      containers:
+        - name: optimization-server
+          image: maksimshilov/myproject:optimization-v1
+          ports:
+            - containerPort: 8090
+          volumeMounts:
+            - mountPath: /usr/optimization/bucket
+              name: bucket
+          env:
+            - name: STORAGE_TYPE
+              value: local
+            - name: STORAGE_BUCKET
+              value: /usr/optimization/bucket

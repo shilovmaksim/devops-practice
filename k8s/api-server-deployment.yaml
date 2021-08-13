@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: api-server
+  template:
+    metadata:
+      labels:
+        component: api-server
+    spec:
+      volumes:
+        - name: bucket
+          persistentVolumeClaim:
+            claimName: bucket-pvc
+      containers:
+        - name: api-server
+          image: maksimshilov/myproject:api-v2
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /usr/api/bucket
+              name: bucket
+          env:
+            - name: STORAGE_TYPE
+              value: local
+            - name: STORAGE_BUCKET
+              value: /usr/api/bucket

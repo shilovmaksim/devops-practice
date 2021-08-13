@@ -7,5 +7,5 @@ storage:
   region: "us-east-2"
   bucket: "vasiliy-internal-test-bucket"
 opt_srv:
-  endpoint: "optimization_server"
+  endpoint: "optimization-cluster-ip"
   port: "8090"
