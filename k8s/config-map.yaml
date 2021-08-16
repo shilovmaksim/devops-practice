@@ -5,4 +5,5 @@ metadata:
 data:
   optimization-endpoint: optimization-cluster-ip
   storage-type: local
-  storage-bucket: /usr/api/bucket
+  storage-bucket-api: /usr/api/bucket
+  storage-bucket-optimization: /usr/optimization/bucket

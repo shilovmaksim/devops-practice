@@ -34,4 +34,4 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: config-map
-                  key: storage-bucket
+                  key: storage-bucket-optimization

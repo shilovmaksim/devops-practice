@@ -34,7 +34,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: config-map
-                  key: storage-bucket
+                  key: storage-bucket-api
             - name: OPT_SRV_ENDPOINT
               valueFrom:
                 configMapKeyRef:
