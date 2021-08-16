@@ -26,9 +26,15 @@ spec:
               name: bucket
           env:
             - name: STORAGE_TYPE
-              value: local
+              valueFrom:
+                configMapKeyRef:
+                  name: config-map
+                  key: storage-type
             - name: STORAGE_BUCKET
-              value: /usr/api/bucket
+              valueFrom:
+                configMapKeyRef:
+                  name: config-map
+                  key: storage-bucket
             - name: OPT_SRV_ENDPOINT
               valueFrom:
                 configMapKeyRef:

@@ -4,3 +4,5 @@ metadata:
   name: config-map
 data:
   optimization-endpoint: optimization-cluster-ip
+  storage-type: local
+  storage-bucket: /usr/api/bucket
