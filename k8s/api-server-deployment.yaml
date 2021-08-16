@@ -18,7 +18,7 @@ spec:
             claimName: bucket-pvc
       containers:
         - name: api-server
-          image: maksimshilov/myproject:api-v2
+          image: maksimshilov/myproject:api-v1
           ports:
             - containerPort: 8080
           volumeMounts:
@@ -29,3 +29,8 @@ spec:
               value: local
             - name: STORAGE_BUCKET
               value: /usr/api/bucket
+            - name: OPT_SRV_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: config-map
+                  key: optimization-endpoint

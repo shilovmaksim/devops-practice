@@ -12,20 +12,8 @@ spec:
       labels:
         component: ui
     spec:
-      volumes:
-        - name: bucket
-          persistentVolumeClaim:
-            claimName: bucket-pvc
       containers:
         - name: ui
-          image: maksimshilov/myproject:ui-v3
+          image: maksimshilov/myproject:ui-v4
           ports:
             - containerPort: 80
-          volumeMounts:
-            - mountPath: /usr/ui/bucket
-              name: bucket
-          env:
-            - name: STORAGE_TYPE
-              value: local
-            - name: STORAGE_BUCKET
-              value: /usr/ui/bucket
