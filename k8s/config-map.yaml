@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-map
+data:
+  optimization-endpoint: optimization-cluster-ip
+  storage-type: local
+  storage-bucket-api: /usr/api/bucket
+  storage-bucket-optimization: /usr/optimization/bucket
