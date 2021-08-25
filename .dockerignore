@@ -5,6 +5,7 @@ dockerfiles/
 !README.md
 .golangci.yml
 docker-compose.yml
+.gitlab-ci.yml
 
 optimization_server/log/**
 bucket/**
