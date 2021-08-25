@@ -1,1 +1,87 @@
-#blank
+workflow:
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
+
+stages:
+  - Test
+  - Linter
+  - Build
+  - Publish
+
+.common-tags:
+  tags:
+    - dind
+    - docker
+  retry:
+    max: 2
+
+.common-login:
+  before_script:
+    - echo $REGISTRY_PAT | docker login --username $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
+.common-build:
+  stage: Build
+  extends: 
+    - .common-tags
+    - .common-login
+  script:
+    - echo "This is a $COMPONENT build job"
+    - docker pull $CI_REGISTRY_IMAGE/$COMPONENT:latest || true
+    - DOCKER_BUILDKIT=1 docker build --cache-from $CI_REGISTRY_IMAGE/$COMPONENT:latest --file ./dockerfiles/$COMPONENT.Dockerfile --tag $CI_REGISTRY_IMAGE/$COMPONENT:$CI_COMMIT_SHA --build-arg BUILDKIT_INLINE_CACHE=1 .
+    - docker save $CI_REGISTRY_IMAGE/$COMPONENT:$CI_COMMIT_SHA --output $COMPONENT.tar
+  artifacts:
+    paths:
+      - $COMPONENT.tar
+    expire_in: 1 days
+
+linter:
+  stage: Linter
+  extends: .common-tags
+  image: golangci/golangci-lint:v1.42-alpine
+  script:
+    - echo "This is a lint test job"
+    - golangci-lint run --verbose
+  needs: []
+
+tests:
+  stage: Test
+  extends: .common-tags
+  image: golang:1.17.0
+  script:
+    - echo "This is a GO test job"
+    - >
+      go test -race -p 1 -timeout 300s -coverprofile=.test_coverage.txt ./... && go tool cover -func=.test_coverage.txt | tail -n1 | awk '{print "Total test coverage: " $$1}'
+  after_script:
+    - rm .test_coverage.txt
+  needs: []
+
+build-api-job:
+  variables:
+    COMPONENT: 'api'
+  extends: .common-build
+
+build-optimization-job:
+  variables:
+    COMPONENT: 'optimization'
+  extends: .common-build
+
+build-ui-job:
+  variables:
+    COMPONENT: 'ui'
+  extends: .common-build
+
+publish-app:
+  stage: Publish
+  extends: 
+    - .common-tags
+    - .common-login
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - >
+      for i in api optimization ui; do
+        docker load -i $i.tar
+        docker tag $CI_REGISTRY_IMAGE/$i:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE/$i:latest 
+        docker push $CI_REGISTRY_IMAGE/$i:$CI_COMMIT_SHA
+        docker push $CI_REGISTRY_IMAGE/$i:latest
+      done
