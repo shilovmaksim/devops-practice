@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+{{- with (first .Values.volume.mounts) }}
+  name: {{ .persistentVolumeClaim.claimName }}
+{{- end }}
+  namespace: {{ .Values.namespace }}
+spec:
+  {{- toYaml .Values.volume.claim.spec | nindent 2 }}
