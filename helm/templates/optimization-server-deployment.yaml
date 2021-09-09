@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.component.optimization.deployment.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      component: {{ .Values.component.optimization.name }}
+  template:
+    metadata:
+      labels:
+        component: {{ .Values.component.optimization.name }}
+    spec:
+      volumes:
+        {{- toYaml .Values.volume.mounts | nindent 8 }}
+      containers:
+        - name: {{ .Values.component.optimization.name }}
+          image: {{ .Values.image.repository }}{{ .Values.component.optimization.name }}:{{ .Values.image.version }}
+          ports:
+            - containerPort: {{ .Values.component.optimization.deployment.containerPort }}
+          volumeMounts:
+            - mountPath: /usr/{{ .Values.component.optimization.name }}
+            {{- with (first .Values.volume.mounts) }}
+              name: {{ .name }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+          {{- range .Values.env.variables }}
+            - name: {{ .name }}
+              value: {{ .value }}
+          {{- end }}
+            - name: STORAGE_BUCKET
+              value: /usr/{{ .Values.component.optimization.name }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}

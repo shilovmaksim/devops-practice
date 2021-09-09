@@ -1,12 +1,14 @@
 workflow:
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
 
 stages:
   - Test
   - Linter
   - Build
   - Publish
+  - Deploy
 
 .common-tags:
   tags:
@@ -85,3 +87,19 @@ publish-app:
         docker push $CI_REGISTRY_IMAGE/$i:$CI_COMMIT_SHA
         docker push $CI_REGISTRY_IMAGE/$i:latest
       done
+
+deploy-app:
+  stage: Deploy
+  extends: 
+    - .common-tags
+  image: gitlab.akvelon.net:9444/k8s/ci-runner:latest
+  script:
+    - echo "This is a deploy stage"
+    - init-kube-config
+    - helm upgrade --install maksim-shilov-test-app ./helm
+      --namespace $NAMESPACE
+      --set image.pullSecret=$REGISTRY_SECRET_NAME
+      --set image.version=$CI_COMMIT_SHA
+  dependencies: []
+  only:
+    - master

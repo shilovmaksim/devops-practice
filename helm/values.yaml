@@ -1,0 +1,90 @@
+replicaCount: 1
+
+namespace: ""
+
+component:
+  api:
+    name: api
+    deployment:
+      name: api-server-deployment
+      containerPort: 8080
+    service:
+      name: &api-service-name api-cluster-ip
+      type: ClusterIP
+      port: &api-service-port 8080
+  optimization:
+    name: optimization
+    deployment:
+      name: optimization-server-deployment
+      containerPort: 8090
+    service:
+      name: &optimization-service-name optimization-cluster-ip
+      type: ClusterIP
+      port: 8090
+  ui:
+    name: ui
+    deployment:
+      name: ui-deployment
+      containerPort: 80
+    service:
+      name: &ui-service-name "ui-cluster-ip"
+      type: ClusterIP
+      port: &ui-service-port "80"
+
+image:
+  repository: gitlab.akvelon.net:9444/maksim.shilov/devops-practise-task/
+  pullPolicy: IfNotPresent
+  version: latest
+
+volume:
+  mounts:
+    - name: bucket
+      persistentVolumeClaim:
+        claimName: bucket-pvc
+  claim:
+    spec:
+      resources:
+        requests:
+          storage: 100Mi
+      volumeMode: Filesystem
+      accessModes:
+        - ReadWriteMany
+  
+env:
+  variables:
+    - name: STORAGE_TYPE
+      value: local
+    - name: OPT_SRV_ENDPOINT
+      value: *optimization-service-name
+
+resources: # application quotas in order not to deplete resources. If a pod depletes the limited resource k8s restarts a pod automatically
+  limits:
+    cpu: 50m # 1 CPU equals 1000m
+    memory: 64Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+ingress:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging # `letsencrypt-prod` is allowed to be used with production instances only due to Let's Encrypt restrictions. Please use `letsencrypt-staging` for staging and development instances
+    # Comment out the following line if you have no need to expose your service to the whole Internet
+    # By default only Akvelon LAN access is allowed
+    nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
+  hosts:
+    - host: ms-devops-practice-task.k8s.akvelon.net
+      paths:
+        - pathType: Prefix
+          path: "/"
+          backend:
+            serviceName: *ui-service-name
+            servicePort: *ui-service-port
+        - pathType: Prefix
+          path: "/api"
+          backend:
+            serviceName: *api-service-name
+            servicePort: *api-service-port
+  tls:
+    - hosts:
+      - ms-devops-practice-task.k8s.akvelon.net
+      secretName: ms-devops-practice-task-tls-secret
