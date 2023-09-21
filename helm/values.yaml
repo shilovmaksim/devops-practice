@@ -29,11 +29,11 @@ component:
     service:
       name: &ui-service-name "ui-cluster-ip"
       type: ClusterIP
-      port: &ui-service-port "80"
+      port: &ui-service-port "4000"
 
 image:
   repository: gitlab.akvelon.net:9444/maksim.shilov/devops-practise-task/
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   version: latest
 
 volume:
